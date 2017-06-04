@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+#
+# A simplistic interface to Linode's web API.
+#
+# Copyright (c) 2017, Andrew Miller
+#
+# Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+set -eu -o pipefail
+
+
+# The API endpoint to make requests against. Subject to change in the future.
+API_ENDPOINT="https://api.linode.com"
+
+# The Linode API key used when making requests
+API_KEY=""
+
+
+# Print an error message if an API key can't be found.
+# Arguments:
+#   None
+# Returns:
+#   None
+no_api_key_found()
+{
+	printf "No valid API key found\n"
+	printf "Please export the API key in the LINODE_API_KEY environment variable\n"
+	exit 1
+}
+
+# Get's a user's Linode API key through either the $LINODE_API_KEY environment
+# variable or the ~/.linodecli/config file.
+# Globals:
+#   API_KEY
+# Arguments:
+#   None
+# Returns:
+#   None
+get_api_key()
+{
+	if [ "${LINODE_API_KEY:-}" != "" ]; then 
+		API_KEY="${LINODE_API_KEY}"
+	elif [ -r "${HOME}/.linodecli/config" ]; then
+		if [ "$(grep 'api-key' ${HOME}/.linodecli/config | cut -d' ' -f 2)" ]; then
+			API_KEY="$(grep 'api-key' ${HOME}/.linodecli/config | cut -d' ' -f 2)"
+		else
+			no_api_key_found
+		fi
+	else
+		no_api_key_found
+	fi
+}
+
+# Build the URL for the API requests.
+# Globals:
+#   API_KEY
+#   API_ENDPOINT
+# Arguments:
+#   $1 - The API action to use for the request.
+#   $@ - Paramaters for the request.
+# Returns:
+#   A URL for the requested API request
+build_request_url()
+{
+	action="${1:-}"; shift
+	parameters=("${@}")
+
+	request_url="${API_ENDPOINT}/?api_key=${API_KEY}&API_ACTION=${action}"
+	for parameter in "${parameters[@]}"; do
+		request_url+="&${parameter}"
+	done; unset action parameter parameters
+
+	echo "${request_url}"; unset request_url
+}
+
+# Make an API request
+# Arguments:
+#   $1 - The API action to use for the request.
+#   $@ - Paramaters for the request.
+# Returns:
+#   A pretty printed version of the JSON response for the request.
+request()
+{
+	echo $(curl -sS "$(build_request_url ${@})") | jq '.'
+}
+
+
+get_api_key
+request "${@}"
