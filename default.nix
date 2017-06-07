@@ -9,14 +9,15 @@ in
 
     installPhase = ''
       mkdir -p $out/bin
-      cp lapi $out/bin
+      cp lapi3 $out/bin/lapi3
+      ln -s $out/bin/lapi3 $out/bin/lapi
     '';
 
     postFixup = ''
-      substituteInPlace $out/bin/lapi --replace "curl " "${curl}/bin/curl "
-      substituteInPlace $out/bin/lapi --replace "cut " "${coreutils}/bin/cut "
-      substituteInPlace $out/bin/lapi --replace "grep " "${gnugrep}/bin/grep "
-      substituteInPlace $out/bin/lapi --replace "jq " "${jq}/bin/jq "
+      substituteInPlace $out/bin/lapi3 --replace "curl " "${curl}/bin/curl "
+      substituteInPlace $out/bin/lapi3 --replace "cut " "${coreutils}/bin/cut "
+      substituteInPlace $out/bin/lapi3 --replace "grep " "${gnugrep}/bin/grep "
+      substituteInPlace $out/bin/lapi3 --replace "jq " "${jq}/bin/jq "
     '';
 
     meta = {
