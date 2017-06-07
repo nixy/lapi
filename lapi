@@ -89,7 +89,7 @@ build_request_url()
 #   A pretty printed version of the JSON response for the request.
 request()
 {
-	echo $(curl -sS "$(build_request_url ${@})") | jq '.'
+	echo $(curl -sS "$(build_request_url ${@})") | jq -S '.'
 }
 
 
