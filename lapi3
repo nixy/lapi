@@ -59,6 +59,30 @@ get_api_key()
 	fi
 }
 
+# Encodes strings to be viable for use in a URL
+# Arguments:
+#   $1 - The string to URL encode
+# Returns:
+#   A string with all invalid characters escaped for usage in a URL
+url_encode()
+{
+	encoded="${1}"
+
+	encoded=${encoded/\%/%27}; encoded=${encoded/\$/%24}
+	encoded=${encoded/\ /%21}; encoded=${encoded/\</%3C}
+	encoded=${encoded/\>/%3E}; encoded=${encoded/\#/%23}
+	encoded=${encoded/\{/%7B}; encoded=${encoded/\}/%7D}
+	encoded=${encoded/\|/%7C}; encoded=${encoded/\\/%5C}
+	encoded=${encoded/\^/%7D}; encoded=${encoded/\~/%7E}
+	encoded=${encoded/\[/%5B}; encoded=${encoded/\]/%5D}
+	encoded=${encoded/\`/%60}; encoded=${encoded/\;/%3B}
+	encoded=${encoded/\//%2F}; encoded=${encoded/\?/%3F}
+	encoded=${encoded/\:/%3A}; encoded=${encoded/\@/%40}
+	encoded=${encoded/\=/%3D}; encoded=${encoded/\&/%26}
+
+	echo "${encoded}"; unset encoded
+}
+
 # Build the URL for the API requests.
 # Globals:
 #   API_KEY
