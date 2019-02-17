@@ -1,7 +1,7 @@
 { nixpkgs ? (import <nixpkgs> {}) }:
 let
   inherit (nixpkgs) bash curl coreutils gnugrep jq stdenv;
-  version = "0.0.1";
+  version = "0.0.2";
 in
   nixpkgs.stdenv.mkDerivation {
     name = "lapi-${version}";
